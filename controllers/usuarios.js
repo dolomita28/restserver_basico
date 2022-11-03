@@ -1,30 +1,82 @@
 const {response} = require('express');
+const bcryptjs = require('bcryptjs');
+const Usuario = require('../models/usuario');
 
-
-const usuariosGet = (req, res = response) => {
+const usuariosGet = async (req, res = response) => {
     // sacar los query string de la request
-    const params = req.query;
+    const {limite = 5, desde = 0} = req.query;
+    // recupear solo usuarios en status true
+    const query = {status: true};
+    // const usuarios = await Usuario.find()
+    //   .skip(desde)
+    //   .limit(limite);
 
-  res.json({msg:'get API - controlador',params})
+    // const total = await Usuario.countDocuments();
+
+    // modo optimo de hacerlo para evitar dos llamadas secuenciales
+    const [total, usuarios] = await Promise.all([
+      Usuario.countDocuments(query),
+      Usuario.find(query)
+        .skip(desde)
+        .limit(limite)
+    ])
+
+  res.json({total,usuarios})
 }
 
-const usuariosPost = (req, res = response) => {
-    const body = req.body;
+/**
+ * POST para crear un nuevo usuario
+ * @param {*} req 
+ * @param {*} res 
+ */
+const usuariosPost = async (req, res = response) => {
+    //desestructurar el body
+    const {nombre, correo, password, rol} = req.body;
+    // creamos el usuario a partir de los datos del body (aquellos que no sea parte del modelo Usuario serán ignorados)
+    const usuario = new Usuario({nombre, correo, password, rol})    
 
-    res.json({msg:'post API - controlador', body})
+    // encriptar la contraseña
+    const salt = bcryptjs.genSaltSync();
+    usuario.password = bcryptjs.hashSync(password, salt);
+
+    // guardar en bbdd
+    await usuario.save();
+
+    // devolver mensaje de respuesta y los datos del usuario recien creado
+    res.json({msg:'post API - usuario creado', usuario})
   }
 
-const usuariosPut = (req, res = response) => {
+const usuariosPut = async (req, res = response) => {
     // sacar parámetros de la request
-    const id = req.params.id;
-    res.json({msg:'put API - controlador',id})
+    const {id} = req.params;
+    const {_id,password,google,correo, ...restoArgs} = req.body;
+
+    if (password){
+      // encriptar
+      const salt = bcryptjs.genSaltSync();
+      restoArgs.password = bcryptjs.hashSync(password, salt);
+    }
+
+    const usuario = await Usuario.findByIdAndUpdate(id, restoArgs);
+
+    res.json({msg:'put API - usuario actualizado', usuario})
   }
 
 
-const usuariosDelete = (req, res = response) => {
-    res.json({msg:'delete API - controlador'})
+const usuariosDelete = async (req, res = response) => {
+  // recuperar el id
+  const {id} = req.params;
+
+  // borrado físico
+  //const usuario = await Usuario.findByIdAndDelete(id);
+
+  //borrado lógico
+  const usuario = await Usuario.findByIdAndUpdate(id, {status:false});
+
+    res.json({msg:`El usuario con id: ${id} fue eliminado.`,usuario})
   }
 
+  
 const usuariosPatch = (req, res = response) => {
     res.json({msg:'patch API - controlador'})
   }
