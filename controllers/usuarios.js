@@ -67,13 +67,16 @@ const usuariosDelete = async (req, res = response) => {
   // recuperar el id
   const {id} = req.params;
 
-  // borrado físico
-  //const usuario = await Usuario.findByIdAndDelete(id);
+  // recuperar el usuario conectado desde la request (asignado en el middleware validar-jwt)
+  //const usuarioConectado = req.usuario;
 
   //borrado lógico
   const usuario = await Usuario.findByIdAndUpdate(id, {status:false});
 
-    res.json({msg:`El usuario con id: ${id} fue eliminado.`,usuario})
+    res.json(
+      {msg:`El usuario con id: ${id} fue eliminado.`,
+      usuario
+    })
   }
 
   

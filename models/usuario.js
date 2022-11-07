@@ -34,7 +34,9 @@ const UsuarioSchema = Schema({
 
 //sobrescribir el método toJSON para evitar devolver el password y el atributo __v
 UsuarioSchema.methods.toJSON = function() {
-    const {__v,password,...usuario} = this.toObject();
+    const {__v,password,_id,...usuario} = this.toObject();
+    usuario.uid = _id;
+    
     return usuario;
 }
 
