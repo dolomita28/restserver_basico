@@ -1,3 +1,6 @@
 PORT=here_goes_your_port
 MONGODB_CNN=here_goes_your_connection_string_to_mongodb
 SECRETJWTKEY=here_goes_your_JWT_secret_key
+
+GOOGLE_CLIENT_ID=
+GOOGLE_SECRET_ID=
