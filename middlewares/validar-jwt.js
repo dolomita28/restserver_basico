@@ -34,6 +34,7 @@ const validarJWT = async (req = request, res = response, next)=> {
             })
         }
         
+        // guardar el usuario autenticado
         req.usuario = usuario;
         next();
     }
